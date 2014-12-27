@@ -1,0 +1,23 @@
+{
+  "name": "sketch-rendering",
+  "version": "0.0.0",
+  "authors": [
+    "Chase Zhang <yun.er.run@gmail.com>"
+  ],
+  "description": "Demo for realtime sketch style rendering",
+  "main": "index.html",
+  "keywords": [
+    "sketch",
+    "render",
+    "webgl",
+    "shader"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
