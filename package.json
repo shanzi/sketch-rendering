@@ -1,0 +1,16 @@
+{
+  "name": "sketch-rendering",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify --extension=.coffee -t coffeeify ./coffee/main.coffee > bundle.js",
+    "devbuild": "watchify --debug --extension=.coffee -t coffeeify ./coffee/main.coffee -o bundle.js"
+  },
+  "author": "chase",
+  "license": "MIT",
+  "dependencies": {
+    "browserify": "^8.0.2",
+    "coffeeify": "^1.0.0"
+  }
+}
