@@ -7,6 +7,9 @@ class ComposeMaterial extends THREE.ShaderMaterial
     normaltexture:
       type: 't'
       value: null
+    hatchtexture:
+      type: 't'
+      value: null
 
   vertexShader: '''
 varying vec2 vUv;
@@ -18,6 +21,7 @@ void main() {
   fragmentShader: '''
 uniform sampler2D depthtexture;
 uniform sampler2D normaltexture;
+uniform sampler2D hatchtexture;
 
 varying vec2 vUv;
 
@@ -50,10 +54,11 @@ void main() {
   planeEdge = 1.0 - 0.5 * smoothstep(0.0, depthCenter, planeEdge);;
 
   float normEdge = max(length(leftnor - rightnor), length(upnor - downnor));
-  normEdge = 1.0 - 0.2 * smoothstep(0.0, 0.2, normEdge); 
+  normEdge = 1.0 - 0.5 * smoothstep(0.0, 0.2, normEdge); 
 
-  float edge = planeEdge * normEdge;
-  gl_FragColor = vec4(vec3(edge), 1.0);
+  float edge= planeEdge * normEdge;
+  vec4 hatch = texture2D(hatchtexture, vUv);
+  gl_FragColor = hatch * edge;
 }
   '''
   constructor: ->

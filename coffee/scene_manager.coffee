@@ -1,4 +1,5 @@
 ComposeMaterial = require './compose_material'
+HatchMaterial = require './hatch_material'
 
 class SceneManager
   objectScene: new THREE.Scene()
@@ -6,7 +7,7 @@ class SceneManager
 
   depthMaterial: new THREE.MeshDepthMaterial()
   normalMaterial: new THREE.MeshNormalMaterial()
-  hatchMaterial: null
+  hatchMaterial: new HatchMaterial()
   composeMaterial: new ComposeMaterial()
 
   renderer: new THREE.WebGLRenderer(antialias: true)
@@ -27,8 +28,8 @@ class SceneManager
 
   initObjectCamera: ->
     @objectCamera = new THREE.PerspectiveCamera(45, @width / @height, 1, 30)
-    @objectCamera.position.z = 2
-    @objectCamera.position.x = 14
+    @objectCamera.position.z = 14
+    @objectCamera.position.x = 7
     @objectCamera.position.y = 3
     @objectCamera.lookAt(new THREE.Vector3(0, 0, 0))
 
@@ -45,8 +46,12 @@ class SceneManager
     boxMesh.position.x = 1
     sphereMesh.position.x = -1
 
+    directLight = new THREE.DirectionalLight(0xffffff, 0.5)
+    directLight.position.set(1, 1, 1)
+
     @objectScene.add(boxMesh)
     @objectScene.add(sphereMesh)
+    @objectScene.add(directLight)
 
   initComposeScene: ->
     composePlaneGeometry = new THREE.PlaneBufferGeometry(@width, @height)
@@ -62,9 +67,11 @@ class SceneManager
 
     @depthTexture = new THREE.WebGLRenderTarget(@width, @height, pars)
     @normalTexture = new THREE.WebGLRenderTarget(@width, @height, pars)
+    @hatchTexture = new THREE.WebGLRenderTarget(@width, @height, pars)
 
     @composeMaterial.uniforms.depthtexture.value = @depthTexture
     @composeMaterial.uniforms.normaltexture.value = @normalTexture
+    @composeMaterial.uniforms.hatchtexture.value = @hatchTexture
 
   initRenderer: ->
     @renderer.setSize(@width, @height)
@@ -72,13 +79,21 @@ class SceneManager
 
   renderDepth: ->
     @objectScene.overrideMaterial = @depthMaterial
+    @renderer.setClearColor '#000000'
     @renderer.clearTarget @depthTexture, true, true
     @renderer.render @objectScene, @objectCamera, @depthTexture
 
   renderNormal: ->
     @objectScene.overrideMaterial = @normalMaterial
+    @renderer.setClearColor '#000000'
     @renderer.clearTarget @normalTexture, true, true
     @renderer.render @objectScene, @objectCamera, @normalTexture
+
+  renderHatch: ->
+    @objectScene.overrideMaterial = @hatchMaterial
+    @renderer.setClearColor '#ffffff'
+    @renderer.clearTarget @hatchTexture, true, true
+    @renderer.render @objectScene, @objectCamera, @hatchTexture
 
   compose: ->
     @renderer.render @composeScene, @composeCamera
@@ -86,6 +101,7 @@ class SceneManager
   render: ->
     @renderDepth()
     @renderNormal()
+    @renderHatch()
     @compose()
 
 module.exports = SceneManager
