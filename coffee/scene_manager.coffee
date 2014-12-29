@@ -1,35 +1,41 @@
-SketchMaterial = require './sketch_material'
+ComposeMaterial = require './compose_material'
 
 class SceneManager
-  camera: new THREE.PerspectiveCamera(45, 1, 1, 15)
-  renderer: new THREE.WebGLRenderer(antialias: true)
-  scene: new THREE.Scene()
+  objectScene: new THREE.Scene()
+  composeScene: new THREE.Scene()
+
   depthMaterial: new THREE.MeshDepthMaterial()
   normalMaterial: new THREE.MeshNormalMaterial()
-  sketchMaterial: new SketchMaterial()
+  hatchMaterial: null
+  composeMaterial: new ComposeMaterial()
 
-  constructor: (element, @scenename) ->
-    @renderer.setSize(element.clientWidth, element.clientHeight)
-    @sketchMaterial.initTextures(element.clientWidth, element.clientWidth)
-    @initCamera(@scenename)
-    switch @scenename
-      when 'test'
-        @initTestScene()
-      else
-        
-    element.appendChild @renderer.domElement
+  renderer: new THREE.WebGLRenderer(antialias: true)
 
-  initCamera: (scenename) ->
-    switch scenename
-      when 'test'
-        @camera.position.z = 10
-        @camera.position.x = 3
-        @camera.position.y = 3
-        @camera.lookAt(new THREE.Vector3(0, 0, 0))
-      else
-        # TODO: other scene
+  constructor: (@element) ->
+    @width = @element.clientWidth
+    @height = @element.clientHeight
 
-  initTestScene: ->
+    @initTextures()
+
+    @initObjectCamera()
+    @initComposeCamera()
+
+    @initObjectScene()
+    @initComposeScene()
+
+    @initRenderer()
+
+  initObjectCamera: ->
+    @objectCamera = new THREE.PerspectiveCamera(45, @width / @height, 1, 30)
+    @objectCamera.position.z = 2
+    @objectCamera.position.x = 14
+    @objectCamera.position.y = 3
+    @objectCamera.lookAt(new THREE.Vector3(0, 0, 0))
+
+  initComposeCamera: ->
+    @composeCamera = new THREE.OrthographicCamera(-@width / 2, @width / 2, @height / 2, -@height / 2, -10, 10)
+
+  initObjectScene: ->
     boxGeometry = new THREE.BoxGeometry(2, 2, 2)
     sphereGeometry = new THREE.SphereGeometry(2, 32, 32)
     
@@ -39,11 +45,47 @@ class SceneManager
     boxMesh.position.x = 1
     sphereMesh.position.x = -1
 
-    @scene.add(boxMesh)
-    @scene.add(sphereMesh)
-    @scene.overrideMaterial = @normalMaterial
+    @objectScene.add(boxMesh)
+    @objectScene.add(sphereMesh)
+
+  initComposeScene: ->
+    composePlaneGeometry = new THREE.PlaneBufferGeometry(@width, @height)
+    composePlaneMesh = new THREE.Mesh(composePlaneGeometry, @composeMaterial)
+    @composeScene.add composePlaneMesh
+
+  initTextures: ->
+    pars =
+      minFilter: THREE.LinearFilter
+      magFilter: THREE.LinearFilter
+      format: THREE.RGBFormat
+      stencilBuffer: false
+
+    @depthTexture = new THREE.WebGLRenderTarget(@width, @height, pars)
+    @normalTexture = new THREE.WebGLRenderTarget(@width, @height, pars)
+
+    @composeMaterial.uniforms.depthtexture.value = @depthTexture
+    @composeMaterial.uniforms.normaltexture.value = @normalTexture
+
+  initRenderer: ->
+    @renderer.setSize(@width, @height)
+    @element.appendChild @renderer.domElement
+
+  renderDepth: ->
+    @objectScene.overrideMaterial = @depthMaterial
+    @renderer.clearTarget @depthTexture, true, true
+    @renderer.render @objectScene, @objectCamera, @depthTexture
+
+  renderNormal: ->
+    @objectScene.overrideMaterial = @normalMaterial
+    @renderer.clearTarget @normalTexture, true, true
+    @renderer.render @objectScene, @objectCamera, @normalTexture
+
+  compose: ->
+    @renderer.render @composeScene, @composeCamera
 
   render: ->
-    @renderer.render(@scene, @camera)
+    @renderDepth()
+    @renderNormal()
+    @compose()
 
 module.exports = SceneManager
