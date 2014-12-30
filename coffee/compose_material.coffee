@@ -54,11 +54,11 @@ void main() {
   planeEdge = 1.0 - 0.5 * smoothstep(0.0, depthCenter, planeEdge);;
 
   float normEdge = max(length(leftnor - rightnor), length(upnor - downnor));
-  normEdge = 1.0 - 0.5 * smoothstep(0.0, 0.2, normEdge); 
+  normEdge = 1.0 - 0.5 * smoothstep(0.0, 0.5, normEdge); 
 
   float edge= planeEdge * normEdge;
   vec4 hatch = texture2D(hatchtexture, vUv);
-  gl_FragColor = hatch * edge;
+  gl_FragColor = vec4(vec3(hatch * edge), 1.0);
 }
   '''
   constructor: ->

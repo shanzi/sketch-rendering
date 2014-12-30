@@ -1,6 +1,9 @@
 class HatchMaterial extends THREE.ShaderMaterial
   attributes: {}
   uniforms:
+    bakedshadow:
+      type: 't'
+      value: THREE.ImageUtils.loadTexture('textures/room_baked.png')
     hatch0:
       type: 't'
       value: THREE.ImageUtils.loadTexture('textures/hatch_0.jpg')
@@ -12,35 +15,21 @@ class HatchMaterial extends THREE.ShaderMaterial
       value: THREE.ImageUtils.loadTexture('textures/hatch_2.jpg')
 
   vertexShader: '''
-
-uniform vec3 directionalLightColor[MAX_DIR_LIGHTS];
-uniform vec3 directionalLightDirection[MAX_DIR_LIGHTS];
-
 varying vec2 vUv;
-varying float shading;
 
 void main() {
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-
   vec3 vNormal = normalMatrix * normal; 
-
-  shading = 0.0;
-  for(int l = 0; l < MAX_DIR_LIGHTS; l++) {
-    vec3 lightDirection = directionalLightDirection[l];
-    shading += dot(lightDirection, vNormal);
-  }
-  shading = max(shading, 0.0);
-
   vUv = uv;
 }
   '''
   fragmentShader: '''
+uniform sampler2D bakedshadow;
 uniform sampler2D hatch0;
 uniform sampler2D hatch1;
 uniform sampler2D hatch2;
 
 varying vec2 vUv;
-varying float shading;
 
 float shade(const in float shading, const in vec2 uv) {
   float shadingFactor;
@@ -77,21 +66,19 @@ float shade(const in float shading, const in vec2 uv) {
 }
 
 void main() {
-  //gl_FragColor = vec4(vec3(shading), 1.0);
-  float crossedShading = shade(shading, vUv) * shade(shading, vec2(vUv.t, vUv.s)) * 0.8 + 0.2;
+  vec2 uv = vUv * 15.0;
+  vec2 uv2 = vec2(uv.t, uv.s);
+  float shading = texture2D(bakedshadow, vUv).r + 0.1;
+  float crossedShading = shade(shading, uv) * shade(shading, uv2) * 0.6 + 0.4;
   gl_FragColor = vec4(vec3(crossedShading), 1.0);
 }
   '''
   constructor: ->
-    uniforms = THREE.UniformsUtils.merge([THREE.UniformsLib['lights'], {}])
     for k, v of @uniforms
       v.value.magFilter = THREE.NearestFilter
       v.value.minFilter = THREE.NearestFilter
       v.value.wrapS = THREE.RepeatWrapping
       v.value.wrapT = THREE.RepeatWrapping
-      uniforms[k] = v
-    @uniforms = uniforms
-    @lights = true
     super(
       attributes: @attributes
       uniforms: @uniforms
