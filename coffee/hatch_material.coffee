@@ -67,7 +67,7 @@ float shade(const in float shading, const in vec2 uv) {
 
 void main() {
   vec2 uv = vUv * 15.0;
-  vec2 uv2 = vec2(uv.t, uv.s);
+  vec2 uv2 = vUv.yx * 10.0;
   float shading = texture2D(bakedshadow, vUv).r + 0.1;
   float crossedShading = shade(shading, uv) * shade(shading, uv2) * 0.6 + 0.4;
   gl_FragColor = vec4(vec3(crossedShading), 1.0);
