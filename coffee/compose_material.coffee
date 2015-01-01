@@ -51,7 +51,7 @@ void main() {
     planeDistance(uppos, upnor, downpos, downnor));
 
   float planeEdge = 2.5 * length(planeDist);
-  planeEdge = 1.0 - 0.5 * smoothstep(0.0, depthCenter, planeEdge);;
+  planeEdge = 1.0 - 0.5 * smoothstep(0.0, depthCenter, planeEdge);
 
   float normEdge = max(length(leftnor - rightnor), length(upnor - downnor));
   normEdge = 1.0 - 0.5 * smoothstep(0.0, 0.5, normEdge); 
